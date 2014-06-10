@@ -1,7 +1,8 @@
 import pygame, sys
 from pygame import *
 
-VERS_NUM = 0.3
+VERS_NUM = 0.4
+MSG = 'click the button to spawn a bird! press space to switch between characters!'
 
 pygame.init()
 fpsClock = pygame.time.Clock()
@@ -17,9 +18,10 @@ SCREENHEIGHT = 480
 x, y = 0, 0
 
 up, down, left, right = False, False, False, False
+currentPlayer = 0
 
 windowSurfaceObj = pygame.display.set_mode((SCREENWIDTH, SCREENHEIGHT))
-pygame.display.set_caption('Platformer ' + str(VERS_NUM) + ':  now with birds!')
+pygame.display.set_caption('Platformer ' + str(VERS_NUM) + ': ' + MSG)
 
 #example sound object
 bounceSound = pygame.mixer.Sound('bounce.wav')
@@ -37,11 +39,11 @@ map = [
 "W                                                              W",
 "W                                                              W",
 "W                                                              W",
+"W                                                   WW         W",
 "W                                                              W",
 "W                                                              W",
 "W                                                              W",
-"W                                                              W",
-"W                                                              W",
+"W                           WWWWWWWWW                          W",
 "W                                                              W"
 "W                                                              W",
 "W                                                              W",
@@ -51,28 +53,28 @@ map = [
 "W                                                              W",
 "W                                                              W",
 "W                                                              W",
+"W        WWWWW                                       WWWWWW    W",
 "W                                                              W",
 "W                                                              W",
 "W                                                              W",
-"W                        W                                     W",
-"W                        W                                     W",
-"W                        W                                     W",
-"W                                                              W",
-"W                                                              W",
-"W                                                              W",
-"W                                                              W",
-"W                        WWWWWWWWWWWWWWWWWWWWWWWW              W",
-"W                                                              W",
-"W                                                              W",
-"W                                                     WWWWWW   W",
+"W                                   WW                         W",
 "W                                                              W",
 "W                                                              W",
 "W                                                              W",
 "W                                                              W",
-"W                                      WWWWWW                  W",
 "W                                                              W",
-"W                                                WWW           W",
+"W                     WWWWWWWWWWWWWWWWWWWWWWWWWWW              W",
 "W                                                              W",
+"W                                                              W",
+"W   WWWWWW                                            WWWWWW   W",
+"W                                                              W",
+"W                                                              W",
+"W                  WW                                          W",
+"W                                                              W",
+"W                                              WW              W",
+"W                                                              W",
+"W                                                              W",
+"W                             WWWWWWWWWWW                      W",
 "W                                                              W",
 "W                                                              W",
 "W                                                              W",
@@ -85,7 +87,6 @@ class Entity(pygame.sprite.Sprite):
 
 
 class Block(Entity):
-	
 	def __init__(self, color, width, height, x, y):
 		Entity.__init__(self)
 		
@@ -98,10 +99,23 @@ class Block(Entity):
 		self.rect.x = x
 		self.rect.y = y
 
-		
-		
 
-
+class SpawnButton(Block):
+	def __init__(self, color, x, y, entity):
+		Block.__init__(self, color, 10, 10, x, y)
+		self.mousex = 0
+		self.mousey = 0
+		self.entity = entity
+		
+	def spawn(self, go = False):
+		if go:
+			return self.entity
+	
+		for event in pygame.event.get():
+			if event.type == KEYDOWN and event.key == pygame.MOUSEBUTTONDOWN:
+				self.mousex, self.mousey = event.pos
+				if self.get_rect().collide_point(x,y):
+					return self.entity
 
 class Platformer(Entity):
 	def __init__(self, color, width, height, x, y):
@@ -126,8 +140,8 @@ class Platformer(Entity):
 				bounceSound.play()
 			elif not isPlatformer:
 				self.yvel -= 3
-				if self.yvel > 5:
-					self.yvel = 5
+				if self.yvel < -5:
+					self.yvel = -5
 		if down:
 			self.yvel += 5
 		if left:
@@ -149,7 +163,7 @@ class Platformer(Entity):
 		self.collide(0, self.yvel, platforms)
 		
 	def collide(self, xvel, yvel, plats):
-		for p in platforms:
+		for p in plats:
 				if sprite.collide_rect(self, p) and isinstance(p, Block):
 					if xvel > 0:
 						self.rect.right = p.rect.left
@@ -168,75 +182,11 @@ class Bird(Platformer):
 
 	def update(self, up, down, left, right, platforms):
 		super(Bird, self).update(up, down, left, right, platforms, False)
-		
-		
-		
-		
-def handleKeys2(keyup, keydown, keyleft, keyright):
-	up1, down1, left1, right1 = False, False, False, False
-	
-	for ev in pygame.event.get():
-		if ev.type == QUIT:
-			bgm.stop()
-			pygame.quit()
-			sys.exit()
-		if ev.type == KEYDOWN and ev.key == K_ESCAPE:
-			bgm.stop()
-			pygame.event.post(pygame.event.Event(QUIT))
-		if ev.type == KEYDOWN and ev.key == keyleft:
-			left1 = True
-		if ev.type == KEYDOWN and ev.key == keyright:
-			right1 = True
-		if ev.type == KEYDOWN and ev.key == keyup:
-			up1 = True
-		if ev.type == KEYDOWN and ev.key == keydown:
-			down1 = True
-				
-
-		if ev.type == KEYUP and ev.key == keyleft:
-			left1 = False
-		if ev.type == KEYUP and ev.key == keyright:
-			right1 = False
-		if ev.type == KEYUP and ev.key == keyup:
-			up1 = False
-		if ev.type == KEYUP and ev.key == keydown:
-			down1 = False
-
-	return up1, down1, left1, right1
-
-def handleKeys(keyup, keydown, keyleft, keyright):
-		
-	for ev in pygame.event.get():
-		if ev.type == QUIT:
-			bgm.stop()
-			pygame.quit()
-			sys.exit()
-		if ev.type == KEYDOWN and ev.key == K_ESCAPE:
-			bgm.stop()
-			pygame.event.post(pygame.event.Event(QUIT))
-		if ev.type == KEYDOWN and ev.key == keyleft:
-			left = True
-		if ev.type == KEYDOWN and ev.key == keyright:
-			right = True
-		if ev.type == KEYDOWN and ev.key == keyup:
-			up = True
-		if ev.type == KEYDOWN and ev.key == keydown:
-			down = True
-				
-
-		if ev.type == KEYUP and ev.key == keyleft:
-			left = False
-		if ev.type == KEYUP and ev.key == keyright:
-			right = False
-		if ev.type == KEYUP and ev.key == keyup:
-			up = False
-		if ev.type == KEYUP and ev.key == keydown:
-			down = False
 
 
 		
-				
-platforms = pygame.sprite.Group()	
+player = []
+platforms = pygame.sprite.Group()
 for row in map:
 		for col in row:
 			if col == "W":
@@ -246,17 +196,18 @@ for row in map:
 		y += 10
 		x = 0
 
-player = Platformer(redColor, 10, 10, SCREENWIDTH/2, 10)
-birdman = Bird(greenColor, 10, 10, 20, 20)
+platy = Platformer(redColor, 10, 10, SCREENWIDTH/2, 10)
+spawnBird = SpawnButton(greenColor, 620, 10, Bird(greenColor, 10, 10, 20, 20))
 
-platforms.add(player)
-platforms.add(birdman)
+platforms.add(platy)
+player.append(platy)
+platforms.add(spawnBird)
 
 bgm.play(-1)
 
 while True:
 	windowSurfaceObj.fill(whiteColor)
-	msg = str(player.rect.x) + ', ' + str(player.rect.y)
+	msg = str(player[currentPlayer].rect.x) + ', ' + str(player[currentPlayer].rect.y)
 	
 	
 	msgSurfaceObj = fontObj.render(msg, False, redColor)
@@ -277,6 +228,10 @@ while True:
 		if ev.type == KEYDOWN and ev.key == K_ESCAPE:
 			bgm.stop()
 			pygame.event.post(pygame.event.Event(QUIT))
+		if ev.type == MOUSEBUTTONDOWN:
+			p = spawnBird.spawn(True)
+			player.append(p)
+			platforms.add(p)
 		if ev.type == KEYDOWN and ev.key == K_LEFT:
 			left = True
 		if ev.type == KEYDOWN and ev.key == K_RIGHT:
@@ -285,7 +240,10 @@ while True:
 			up = True
 		if ev.type == KEYDOWN and ev.key == K_DOWN:
 			down = True
-				
+		if ev.type == KEYDOWN and ev.key == K_SPACE:
+			currentPlayer += 1
+			if currentPlayer >= len(player):
+				currentPlayer = 0
 
 		if ev.type == KEYUP and ev.key == K_LEFT:
 			left = False
@@ -295,13 +253,15 @@ while True:
 			up = False
 		if ev.type == KEYUP and ev.key == K_DOWN:
 			down = False
-			
-	handleKeys2(K_UP, K_DOWN, K_LEFT, K_RIGHT)
-			
-	player.update(up, down, left, right, platforms)
+
+	if player:
+		player[currentPlayer].update(up, down, left, right, platforms)
 	
-	up2, down2, left2, right2 = handleKeys(K_w, K_s, K_a, K_d)
-	birdman.update(up2, down2, left2, right2, platforms)
+	
+	p = spawnBird.spawn()
+	if p:
+		player.append(p)
+		platforms.add(p)
 	
 	platforms.draw(windowSurfaceObj)
 	
