@@ -114,7 +114,7 @@ class SpawnButton(Block):
 		for event in pygame.event.get():
 			if event.type == KEYDOWN and event.key == pygame.MOUSEBUTTONDOWN:
 				self.mousex, self.mousey = event.pos
-				if self.get_rect().collide_point(x,y):
+				if self.get_rect().collide_point(self.mousex,self.mousey):
 					return self.entity
 
 class Platformer(Entity):
